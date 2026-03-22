@@ -6,58 +6,110 @@
 <title>Dash Dog: Chaos Run</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap');
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{width:100%;height:100%;overflow:hidden;}
-  body{background:#1a0a2e;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Nunito',sans-serif;}
-  #gw{position:relative;width:800px;height:500px;flex-shrink:0;}
-  canvas{display:block;border-radius:16px;box-shadow:0 0 60px rgba(255,180,0,.3),0 0 120px rgba(255,100,0,.15);}
-  /* Responsive: JS handles scaling below */
-  #ui{position:absolute;top:0;left:0;width:800px;height:500px;pointer-events:none;}
-  #hud{position:absolute;top:14px;left:14px;display:flex;gap:14px;}
-  .hi{background:rgba(0,0,0,.55);border-radius:30px;padding:6px 16px;display:flex;align-items:center;gap:6px;font-family:'Fredoka One',cursive;font-size:20px;color:#fff;border:2px solid rgba(255,255,255,.2);}
-  #lvbanner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:'Fredoka One',cursive;font-size:44px;color:#FFE566;text-shadow:3px 3px 0 #FF6B00;background:rgba(0,0,0,.8);padding:12px 40px;border-radius:12px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
-  #lvbanner.show{transform:translate(-50%,-50%) scale(1);}
-  #combodiv{position:absolute;right:14px;top:56px;font-family:'Fredoka One',cursive;font-size:26px;color:#FF9800;text-shadow:2px 2px 0 #000;opacity:0;pointer-events:none;}
-  /* Screens are fixed overlays — fully outside pointer-events:none ui layer */
-  .scr{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;}
-  .stitle{font-family:'Fredoka One',cursive;font-size:60px;color:#FFE566;text-shadow:4px 4px 0 #FF6B00,8px 8px 0 #8B1A00;text-align:center;line-height:1;}
-  .ssub{font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:2px 2px 0 #333;margin-top:6px;}
-  .btn{pointer-events:all;font-family:'Fredoka One',cursive;font-size:26px;background:linear-gradient(180deg,#FFE566,#FF9800);color:#5A2D00;border:none;border-radius:50px;padding:13px 44px;cursor:pointer;box-shadow:0 6px 0 #8B4500,0 8px 20px rgba(0,0,0,.4);margin-top:26px;letter-spacing:1px;transition:transform .1s,box-shadow .1s;}
-  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 0 #8B4500;}
-  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #8B4500;}
-  .chint{color:rgba(255,255,255,.65);font-size:13px;margin-top:18px;text-align:center;line-height:2;}
-  .chint span{color:#FFE566;font-weight:900;}
-  #pwrbar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);border-radius:20px;padding:5px 18px;font-family:'Fredoka One',cursive;font-size:16px;color:#fff;opacity:0;pointer-events:none;transition:opacity .3s;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+  html,body{width:100%;height:100%;overflow:hidden;touch-action:none;background:#1a0a2e;}
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;
+       min-height:100%;font-family:'Nunito',sans-serif;}
 
-  /* ── Leaderboard & name entry ── */
-  .name-input{
-    font-family:'Fredoka One',cursive;font-size:28px;text-align:center;
-    background:rgba(255,255,255,.12);border:3px solid rgba(255,229,102,.6);
-    border-radius:14px;padding:10px 22px;color:#fff;outline:none;width:260px;
-    margin-top:18px;letter-spacing:2px;caret-color:#FFE566;
-    pointer-events:all;
+  /* ── Game wrapper + canvas ── */
+  #gw{position:relative;flex-shrink:0;}
+  canvas{display:block;border-radius:12px;
+         box-shadow:0 0 40px rgba(255,180,0,.3),0 0 80px rgba(255,100,0,.12);}
+
+  /* ── In-game HUD (sits over canvas, scaled by JS) ── */
+  #ui{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  #hud{position:absolute;top:10px;left:10px;display:flex;gap:8px;}
+  .hi{background:rgba(0,0,0,.6);border-radius:30px;padding:4px 12px;display:flex;
+      align-items:center;gap:5px;font-family:'Fredoka One',cursive;font-size:16px;
+      color:#fff;border:2px solid rgba(255,255,255,.2);}
+  #lvbanner{position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    font-family:'Fredoka One',cursive;font-size:36px;color:#FFE566;
+    text-shadow:3px 3px 0 #FF6B00;background:rgba(0,0,0,.82);
+    padding:10px 30px;border-radius:12px;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none;white-space:nowrap;}
+  #lvbanner.show{transform:translate(-50%,-50%) scale(1);}
+  #combodiv{position:absolute;right:10px;top:48px;font-family:'Fredoka One',cursive;
+    font-size:20px;color:#FF9800;text-shadow:2px 2px 0 #000;opacity:0;pointer-events:none;}
+  #pwrbar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+    background:rgba(0,0,0,.6);border-radius:20px;padding:4px 14px;
+    font-family:'Fredoka One',cursive;font-size:13px;color:#fff;
+    opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+
+  /* ── On-screen touch controls ── */
+  #controls{
+    display:none; /* shown by JS when touch device detected */
+    width:100%;padding:6px 10px 4px;
+    flex-shrink:0;
+    justify-content:space-between;align-items:center;
+    gap:8px;
   }
+  .ctrl-group{display:flex;gap:8px;}
+  .cb{ /* control button */
+    width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.12);color:#fff;font-size:26px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;pointer-events:all;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .08s,transform .08s;
+    touch-action:manipulation;
+  }
+  .cb:active,.cb.pressed{background:rgba(255,229,102,.35);transform:scale(.92);border-color:rgba(255,229,102,.6);}
+  #cb-jump{width:72px;height:72px;font-size:30px;
+    background:rgba(255,229,102,.18);border-color:rgba(255,229,102,.4);}
+  #cb-spin{background:rgba(255,120,0,.18);border-color:rgba(255,120,0,.4);}
+
+  /* ── Full-screen overlay screens ── */
+  .scr{position:fixed;top:0;left:0;width:100%;height:100%;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;
+       z-index:100;padding:16px;overflow-y:auto;}
+  .stitle{font-family:'Fredoka One',cursive;font-size:clamp(32px,8vw,60px);
+    color:#FFE566;text-shadow:3px 3px 0 #FF6B00,6px 6px 0 #8B1A00;
+    text-align:center;line-height:1;}
+  .ssub{font-family:'Fredoka One',cursive;font-size:clamp(16px,4vw,22px);
+    color:#fff;text-shadow:2px 2px 0 #333;margin-top:6px;}
+  .btn{pointer-events:all;font-family:'Fredoka One',cursive;
+    font-size:clamp(18px,5vw,26px);
+    background:linear-gradient(180deg,#FFE566,#FF9800);color:#5A2D00;
+    border:none;border-radius:50px;padding:12px 40px;cursor:pointer;
+    box-shadow:0 5px 0 #8B4500,0 7px 18px rgba(0,0,0,.4);
+    margin-top:20px;letter-spacing:1px;
+    transition:transform .1s,box-shadow .1s;touch-action:manipulation;}
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 #8B4500;}
+  .chint{color:rgba(255,255,255,.6);font-size:clamp(11px,3vw,13px);
+    margin-top:14px;text-align:center;line-height:2;}
+  .chint span{color:#FFE566;font-weight:900;}
+  .chint.mobile-hide{display:block;}
+
+  /* ── Leaderboard ── */
+  .name-input{
+    font-family:'Fredoka One',cursive;font-size:clamp(18px,5vw,26px);
+    text-align:center;background:rgba(255,255,255,.12);
+    border:3px solid rgba(255,229,102,.6);border-radius:14px;
+    padding:10px 18px;color:#fff;outline:none;
+    width:min(260px,80vw);margin-top:16px;
+    letter-spacing:2px;caret-color:#FFE566;pointer-events:all;}
   .name-input::placeholder{color:rgba(255,255,255,.35);}
   .name-input:focus{border-color:#FFE566;background:rgba(255,229,102,.1);}
-
-  .lb-table{width:380px;margin-top:16px;border-collapse:collapse;}
-  .lb-table th{font-family:'Fredoka One',cursive;font-size:14px;color:#FFE566;
-    padding:4px 10px;text-align:left;border-bottom:2px solid rgba(255,229,102,.3);}
-  .lb-table td{font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;
-    color:#fff;padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .lb-table{width:min(380px,90vw);margin-top:14px;border-collapse:collapse;}
+  .lb-table th{font-family:'Fredoka One',cursive;font-size:13px;color:#FFE566;
+    padding:4px 8px;text-align:left;border-bottom:2px solid rgba(255,229,102,.3);}
+  .lb-table td{font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;
+    color:#fff;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.08);}
   .lb-table tr.me td{color:#FFE566;}
   .lb-table tr.gold td:first-child::before{content:'🥇 ';}
   .lb-table tr.silver td:first-child::before{content:'🥈 ';}
   .lb-table tr.bronze td:first-child::before{content:'🥉 ';}
-  .lb-rank{color:rgba(255,255,255,.4);font-size:13px;min-width:26px;}
-  .lb-score-col{text-align:right;min-width:70px;}
-  .lb-bones-col{text-align:right;min-width:50px;color:#FFE566;}
-
-  .sm-btn{pointer-events:all;font-family:'Fredoka One',cursive;font-size:17px;
+  .lb-rank{color:rgba(255,255,255,.4);font-size:12px;min-width:22px;}
+  .lb-score-col{text-align:right;min-width:60px;}
+  .lb-bones-col{text-align:right;min-width:44px;color:#FFE566;}
+  #lb-content{overflow-y:auto;max-height:50vh;width:min(400px,90vw);}
+  .sm-btn{pointer-events:all;font-family:'Fredoka One',cursive;font-size:16px;
     background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.25);
-    border-radius:30px;padding:7px 22px;cursor:pointer;margin-top:10px;
-    transition:background .15s;}
-  .sm-btn:hover{background:rgba(255,255,255,.22);}
+    border-radius:30px;padding:8px 22px;cursor:pointer;margin-top:10px;
+    transition:background .15s;touch-action:manipulation;}
+  .sm-btn:active{background:rgba(255,255,255,.28);}
 </style>
 </head>
 <body>
@@ -75,14 +127,30 @@
   </div><!-- end #ui -->
 </div><!-- end #gw -->
 
+<!-- On-screen controls (shown on touch devices) -->
+<div id="controls">
+  <div class="ctrl-group">
+    <button class="cb" id="cb-left">◀</button>
+    <button class="cb" id="cb-right">▶</button>
+  </div>
+  <div class="ctrl-group">
+    <button class="cb" id="cb-spin" title="Spin Bark">🌀</button>
+    <button class="cb" id="cb-jump" title="Jump">⬆</button>
+  </div>
+</div>
+
 <div id="ss" class="scr" style="background:linear-gradient(160deg,#0D1B4B,#1a0a2e 50%,#0D2B1B);">
       <div style="font-size:80px;margin-bottom:-8px">🐕</div>
       <div class="stitle">DASH DOG</div>
       <div class="ssub">⚡ CHAOS RUN ⚡</div>
       <button class="btn" id="playBtn">🎮 PLAY NOW!</button>
       <button class="sm-btn" id="lbBtn" style="margin-top:14px;">🏆 Leaderboard</button>
-      <div class="chint">
-        <span>← →</span> Run &nbsp;|&nbsp; <span>↑ / Z / Space</span> Jump (double jump!) &nbsp;|&nbsp; <span>X</span> Spin Bark<br>
+      <div class="chint" id="kb-hint">
+        <span>← →</span> Run &nbsp;|&nbsp; <span>↑ / Z / Space</span> Jump (×2!) &nbsp;|&nbsp; <span>X</span> Spin Bark<br>
+        Smash crates · Stomp or spin enemies · Collect bones · Reach the 🏁 flag!
+      </div>
+      <div class="chint" id="touch-hint" style="display:none;">
+        Use the <span>◀ ▶</span> buttons to run &nbsp;|&nbsp; <span>⬆</span> to jump (tap twice!) &nbsp;|&nbsp; <span>🌀</span> to Spin Bark<br>
         Smash crates · Stomp or spin enemies · Collect bones · Reach the 🏁 flag!
       </div>
     </div>
@@ -768,10 +836,7 @@ function drawLabrador(){
   ctx.fillStyle='#3a2200';ctx.beginPath();ctx.arc(25,-44,2.8,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(26,-45,1,0,Math.PI*2);ctx.fill();
 
-  // Collar
-  ctx.fillStyle='#e03030';
-  ctx.beginPath();ctx.roundRect(10,-38,20,5,2);ctx.fill();
-  ctx.fillStyle='#ffcc00';ctx.beginPath();ctx.arc(20,-36,3,0,Math.PI*2);ctx.fill();
+
 
   // Spin rings
   if(player.spinning){
@@ -945,11 +1010,60 @@ document.getElementById('nlBtn').addEventListener('click',()=>{
   curLv=(curLv+1)%LEVELS.length;bones=0;initLevel(curLv);gstate='playing';updateHUD();
 });
 
-// Touch
-let txS=0;
-canvas.addEventListener('touchstart',e=>{txS=e.touches[0].clientX;keys['Space']=true;setTimeout(()=>keys['Space']=false,50);e.preventDefault();},{passive:false});
-canvas.addEventListener('touchmove',e=>{const dx=e.touches[0].clientX-txS;if(dx>20){keys['ArrowRight']=true;keys['ArrowLeft']=false;}else if(dx<-20){keys['ArrowLeft']=true;keys['ArrowRight']=false;}e.preventDefault();},{passive:false});
-canvas.addEventListener('touchend',e=>{keys['ArrowRight']=false;keys['ArrowLeft']=false;e.preventDefault();},{passive:false});
+// ══════════════════ MOBILE / TOUCH ══════════════════
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+// Show on-screen controls and swap hints on touch devices
+if(isTouchDevice){
+  document.getElementById('controls').style.display='flex';
+  const kbHint=document.getElementById('kb-hint');
+  const thHint=document.getElementById('touch-hint');
+  if(kbHint) kbHint.style.display='none';
+  if(thHint) thHint.style.display='block';
+}
+
+// Helper — wire a control button to a key, supporting multitouch
+function wireBtn(id, keyName){
+  const el=document.getElementById(id);
+  if(!el)return;
+  function press(e){
+    e.preventDefault();
+    keys[keyName]=true;
+    el.classList.add('pressed');
+  }
+  function release(e){
+    e.preventDefault();
+    keys[keyName]=false;
+    el.classList.remove('pressed');
+  }
+  el.addEventListener('touchstart', press, {passive:false});
+  el.addEventListener('touchend',   release, {passive:false});
+  el.addEventListener('touchcancel',release, {passive:false});
+  // Also support mouse for desktop testing
+  el.addEventListener('mousedown', press);
+  el.addEventListener('mouseup',   release);
+  el.addEventListener('mouseleave',release);
+}
+
+wireBtn('cb-left',  'ArrowLeft');
+wireBtn('cb-right', 'ArrowRight');
+wireBtn('cb-spin',  'KeyX');
+
+// Jump button — needs edge detection, so we fire it on press only
+(function(){
+  const el=document.getElementById('cb-jump');
+  if(!el)return;
+  function press(e){
+    e.preventDefault();
+    el.classList.add('pressed');
+    // Temporarily set key true — the edge detector in updatePlayer will catch it
+    keys['ArrowUp']=true;
+    // Clear after 80ms so the next jump press is detected as a new edge
+    setTimeout(()=>{ keys['ArrowUp']=false; el.classList.remove('pressed'); }, 80);
+  }
+  el.addEventListener('touchstart', press, {passive:false});
+  el.addEventListener('mousedown',  press);
+})();
 
 // Polyfill roundRect for older browsers
 if(!CanvasRenderingContext2D.prototype.roundRect){
@@ -963,17 +1077,27 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
 
 loop();
 
-// Responsive scaling — resize canvas display size to fit viewport
-// The canvas resolution stays 800x500 internally; only the CSS size changes
+// ══════════════════ RESPONSIVE SCALING ══════════════════
+// Scales the canvas CSS size to fill the viewport.
+// On mobile we reserve space below for the controls bar.
+// Internal canvas resolution (800×500) never changes — coords stay valid.
 function fitScreen(){
-  const scaleX = window.innerWidth  / 800;
-  const scaleY = window.innerHeight / 500;
-  const scale  = Math.min(scaleX, scaleY, 1); // never upscale past 1:1
-  canvas.style.width  = (800 * scale) + 'px';
-  canvas.style.height = (500 * scale) + 'px';
+  const ctrlH = isTouchDevice ? (document.getElementById('controls').offsetHeight || 88) : 0;
+  const avW = window.innerWidth;
+  const avH = window.innerHeight - ctrlH;
+  const scale = Math.min(avW/800, avH/500);
+  const cw = Math.round(800*scale);
+  const ch = Math.round(500*scale);
+  canvas.style.width  = cw+'px';
+  canvas.style.height = ch+'px';
+  // Keep gw the same size as the canvas so #ui overlay matches
+  const gw=document.getElementById('gw');
+  gw.style.width  = cw+'px';
+  gw.style.height = ch+'px';
 }
 fitScreen();
 window.addEventListener('resize', fitScreen);
+screen.orientation && screen.orientation.addEventListener('change', ()=>setTimeout(fitScreen,100));
 </script>
 </body>
 </html>
